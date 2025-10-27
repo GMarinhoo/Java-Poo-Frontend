@@ -1,10 +1,11 @@
 package com.br.pdvpostocombustivel_frontend.service;
 
-import com.br.pdvpostocombustivel_frontend.model.ProdutoPageResponse;
+
 import com.br.pdvpostocombustivel_frontend.model.dto.ProdutoRequest;
 import com.br.pdvpostocombustivel_frontend.model.dto.ProdutoResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -17,9 +18,12 @@ public class ProdutoService {
         this.restTemplate = restTemplate;
     }
 
+    // --- MÉTODO CORRIGIDO ---
     public List<ProdutoResponse> listarProdutos() {
-        ProdutoPageResponse pageResponse = restTemplate.getForObject(API_BASE_URL + "?size=100", ProdutoPageResponse.class);
-        return pageResponse.getContent();
+        // Agora espera um array direto de ProdutoResponse (ProdutoResponse[])
+        ProdutoResponse[] produtoArray = restTemplate.getForObject(API_BASE_URL, ProdutoResponse[].class);
+        // Converte o array para uma Lista
+        return produtoArray != null ? Arrays.asList(produtoArray) : List.of();
     }
 
     public ProdutoResponse salvarProduto(ProdutoRequest produtoRequest, Long id) {

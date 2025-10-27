@@ -3,6 +3,7 @@ package com.br.pdvpostocombustivel_frontend;
 import com.br.pdvpostocombustivel_frontend.view.TelaContatoCrud;
 import com.br.pdvpostocombustivel_frontend.view.TelaEstoqueCrud;
 import com.br.pdvpostocombustivel_frontend.view.TelaPessoaCrud;
+import com.br.pdvpostocombustivel_frontend.view.TelaLogin;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.Bean;
@@ -24,7 +25,7 @@ public class FrontendApplication {
                 .run(args);
 
         SwingUtilities.invokeLater(() -> {
-            var tela = context.getBean(TelaEstoqueCrud.class);
+            var tela = context.getBean(TelaLogin.class);
             tela.setVisible(true);
         });
     }
