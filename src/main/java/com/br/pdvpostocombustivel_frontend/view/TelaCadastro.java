@@ -3,7 +3,7 @@ package com.br.pdvpostocombustivel_frontend.view;
 import com.br.pdvpostocombustivel_frontend.model.dto.AcessoRequest;
 import com.br.pdvpostocombustivel_frontend.model.dto.AcessoResponse;
 import com.br.pdvpostocombustivel_frontend.model.enums.TipoAcesso;
-import com.br.pdvpostocombustivel_frontend.service.AcessoService;
+import com.br.pdvpostocombustivel_frontend.service.AuthService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -28,7 +28,7 @@ public class TelaCadastro extends JDialog {
 
 
     @Autowired
-    private AcessoService acessoService;
+    private AuthService authService;
 
     public TelaCadastro(Frame owner) {
         super(owner, "Cadastro de Novo Usuário", true);

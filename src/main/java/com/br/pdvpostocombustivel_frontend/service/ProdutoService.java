@@ -18,11 +18,8 @@ public class ProdutoService {
         this.restTemplate = restTemplate;
     }
 
-    // --- MÉTODO CORRIGIDO ---
     public List<ProdutoResponse> listarProdutos() {
-        // Agora espera um array direto de ProdutoResponse (ProdutoResponse[])
         ProdutoResponse[] produtoArray = restTemplate.getForObject(API_BASE_URL, ProdutoResponse[].class);
-        // Converte o array para uma Lista
         return produtoArray != null ? Arrays.asList(produtoArray) : List.of();
     }
 

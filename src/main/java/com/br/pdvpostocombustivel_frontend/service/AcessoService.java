@@ -16,6 +16,7 @@ public class AcessoService {
     }
 
     public AcessoResponse registrar(AcessoRequest request) {
-        return restTemplate.postForObject(API_BASE_URL, request, AcessoResponse.class);
+        String url = API_BASE_URL + "/registrar";
+        return restTemplate.postForObject(url, request, AcessoResponse.class);
     }
 }
