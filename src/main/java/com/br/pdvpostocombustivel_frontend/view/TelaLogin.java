@@ -20,7 +20,6 @@ public class TelaLogin extends JFrame {
     private final JTextField txtUsuario = new JTextField(20);
     private final JPasswordField txtSenha = new JPasswordField(20);
     private final JButton btnEntrar = new JButton("Entrar");
-    private final JButton btnCadastrar = new JButton("Cadastrar Novo Usuário");
 
     @Autowired
     private ApplicationContext context;
@@ -52,12 +51,10 @@ public class TelaLogin extends JFrame {
         gbc.gridx = 0;
         painelPrincipal.add(btnEntrar, gbc);
         gbc.gridx = 1;
-        painelPrincipal.add(btnCadastrar, gbc);
 
         add(painelPrincipal);
 
         btnEntrar.addActionListener(e -> tentarLogin());
-        btnCadastrar.addActionListener(e -> abrirTelaCadastro());
     }
 
     private void tentarLogin() {
@@ -90,7 +87,7 @@ public class TelaLogin extends JFrame {
 
 
                     TelaPrincipal telaPrincipal = context.getBean(TelaPrincipal.class);
-                    telaPrincipal.setUsuarioLogado(usuarioLogado.id(), usuarioLogado.usuario());
+                    telaPrincipal.setUsuarioLogado(usuarioLogado.idAcesso(), usuarioLogado.nomePessoa());
                     telaPrincipal.setVisible(true);
 
                 } catch (Exception e) {
@@ -119,12 +116,5 @@ public class TelaLogin extends JFrame {
             }
         };
         worker.execute();
-    }
-
-    private void abrirTelaCadastro() {
-        System.out.println("Abrindo tela de cadastro...");
-        TelaCadastro telaCadastro = context.getBean(TelaCadastro.class, this);
-        telaCadastro.pack();
-        telaCadastro.setVisible(true);
     }
 }

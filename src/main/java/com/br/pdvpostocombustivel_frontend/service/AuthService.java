@@ -3,6 +3,7 @@ package com.br.pdvpostocombustivel_frontend.service;
 import com.br.pdvpostocombustivel_frontend.model.dto.AcessoRequest;
 import com.br.pdvpostocombustivel_frontend.model.dto.AcessoResponse;
 import com.br.pdvpostocombustivel_frontend.model.dto.LoginRequest;
+import com.br.pdvpostocombustivel_frontend.model.dto.RegistroCompletoRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -24,8 +25,8 @@ public class AuthService {
         return restTemplate.postForObject(url, request, AcessoResponse.class);
     }
 
-    public AcessoResponse registrar(AcessoRequest request) throws HttpClientErrorException {
-        String url = ACESSO_URL + "/registrar";
+    public AcessoResponse registrarCompleto(RegistroCompletoRequest request) throws HttpClientErrorException {
+        String url = AUTH_URL + "/registrar-completo";
         return restTemplate.postForObject(url, request, AcessoResponse.class);
     }
 }

@@ -2,9 +2,10 @@ package com.br.pdvpostocombustivel_frontend.model.dto;
 
 import com.br.pdvpostocombustivel_frontend.model.enums.TipoAcesso;
 
-
 public record AcessoResponse(
-        Long id,
+        Long idAcesso,
         String usuario,
-        TipoAcesso perfil
+        TipoAcesso perfil,
+        Long idPessoa,
+        String nomePessoa
 ) {}

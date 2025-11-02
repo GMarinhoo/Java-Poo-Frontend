@@ -38,6 +38,10 @@ public class TelaPrincipal extends JFrame {
         JMenuItem itemContatos = new JMenuItem("Contatos");
         JMenuItem itemEstoque = new JMenuItem("Estoque");
 
+        JMenuItem itemUsuario = new JMenuItem("Cadastrar Novo Usuário");
+        menuCadastros.addSeparator();
+        menuCadastros.add(itemUsuario);
+
         menuCadastros.add(itemPessoas);
         menuCadastros.add(itemProdutos);
         menuCadastros.add(itemContatos);
@@ -65,14 +69,14 @@ public class TelaPrincipal extends JFrame {
         itemProdutos.addActionListener(e -> abrirTelaCrud(TelaProdutoCrud.class));
         itemContatos.addActionListener(e -> abrirTelaCrud(TelaContatoCrud.class));
         itemEstoque.addActionListener(e -> abrirTelaCrud(TelaEstoqueCrud.class));
-
+        itemUsuario.addActionListener(e -> abrirTelaCadastroUsuario());
         itemLogout.addActionListener(e -> fazerLogout());
 
     }
 
-    public void setUsuarioLogado(Long id, String nome) {
-        this.usuarioId = id;
-        this.nomeUsuario = nome;
+    public void setUsuarioLogado(Long idAcesso, String nomePessoa) {
+        this.usuarioId = idAcesso;
+        this.nomeUsuario = nomePessoa;
         setTitle("PDV Posto de Combustível - Usuário: " + nomeUsuario);
         labelBemVindo.setText("Bem-vindo, " + nomeUsuario + "!");
     }
@@ -90,7 +94,6 @@ public class TelaPrincipal extends JFrame {
         }
     }
 
-
     private void fazerLogout() {
         this.setVisible(false);
         this.usuarioId = null;
@@ -98,5 +101,12 @@ public class TelaPrincipal extends JFrame {
 
         TelaLogin telaLogin = context.getBean(TelaLogin.class);
         telaLogin.setVisible(true);
+    }
+
+    private void abrirTelaCadastroUsuario() {
+        TelaCadastro telaCadastro = context.getBean(TelaCadastro.class, this);
+        telaCadastro.pack();
+        telaCadastro.setLocationRelativeTo(this);
+        telaCadastro.setVisible(true);
     }
 }
