@@ -3,6 +3,10 @@ package com.br.pdvpostocombustivel_frontend.view;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+import com.br.pdvpostocombustivel_frontend.service.ProdutoService;
+import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
+import com.br.pdvpostocombustivel_frontend.model.dto.ProdutoResponse;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -14,13 +18,18 @@ public class TelaPrincipal extends JFrame {
     private Long usuarioId;
     private String nomeUsuario;
 
-    @Autowired
     private ApplicationContext context;
+    private ProdutoService produtoService;
 
+    private PainelBomba painelBomba1;
+    private PainelBomba painelBomba2;
+    private PainelBomba painelBomba3;
 
-    private JLabel labelBemVindo;
+    public TelaPrincipal (ApplicationContext context, ProdutoService produtoService) {
 
-    public TelaPrincipal() {
+        this.context = context;
+        this.produtoService = produtoService;
+
         setTitle("PDV Posto de Combustível - Principal");
         setSize(1200, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -29,19 +38,16 @@ public class TelaPrincipal extends JFrame {
         int padding = 15;
         ((JComponent) getContentPane()).setBorder(new EmptyBorder(padding, padding, padding, padding));
 
-        setLayout(new BorderLayout(10, 10));
-
         JMenuBar menuBar = new JMenuBar();
         JMenu menuCadastros = new JMenu("Cadastros");
         JMenuItem itemPessoas = new JMenuItem("Pessoas");
         JMenuItem itemProdutos = new JMenuItem("Produtos");
         JMenuItem itemContatos = new JMenuItem("Contatos");
         JMenuItem itemEstoque = new JMenuItem("Estoque");
-
         JMenuItem itemUsuario = new JMenuItem("Cadastrar Novo Usuário");
-        menuCadastros.addSeparator();
-        menuCadastros.add(itemUsuario);
 
+        menuCadastros.add(itemUsuario);
+        menuCadastros.addSeparator();
         menuCadastros.add(itemPessoas);
         menuCadastros.add(itemProdutos);
         menuCadastros.add(itemContatos);
@@ -55,15 +61,17 @@ public class TelaPrincipal extends JFrame {
 
         setJMenuBar(menuBar);
 
-        JPanel painelCentral = new JPanel();
-        painelCentral.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 20));
-        painelCentral.setBorder(BorderFactory.createTitledBorder("Operação"));
+        JPanel painelDeBombas = new JPanel(new GridLayout(1, 3, 10, 10));
 
-        labelBemVindo = new JLabel("Login bem-sucedido! Tela Principal.");
-        labelBemVindo.setFont(new Font("Arial", Font.BOLD, 24));
-        painelCentral.add(labelBemVindo);
+        this.painelBomba1 = context.getBean(PainelBomba.class);
+        this.painelBomba2 = context.getBean(PainelBomba.class);
+        this.painelBomba3 = context.getBean(PainelBomba.class);
 
-        add(painelCentral, BorderLayout.CENTER);
+        painelDeBombas.add(painelBomba1);
+        painelDeBombas.add(painelBomba2);
+        painelDeBombas.add(painelBomba3);
+
+        add(painelDeBombas, BorderLayout.CENTER);
 
         itemPessoas.addActionListener(e -> abrirTelaCrud(TelaPessoaCrud.class));
         itemProdutos.addActionListener(e -> abrirTelaCrud(TelaProdutoCrud.class));
@@ -72,13 +80,20 @@ public class TelaPrincipal extends JFrame {
         itemUsuario.addActionListener(e -> abrirTelaCadastroUsuario());
         itemLogout.addActionListener(e -> fazerLogout());
 
+        carregarDadosIniciais();
+
     }
 
     public void setUsuarioLogado(Long idAcesso, String nomePessoa) {
         this.usuarioId = idAcesso;
         this.nomeUsuario = nomePessoa;
-        setTitle("PDV Posto de Combustível - Usuário: " + nomeUsuario);
-        labelBemVindo.setText("Bem-vindo, " + nomeUsuario + "!");
+        setTitle("PDV Posto de Combustível - Usuário: " + nomePessoa);
+
+        if (painelBomba1 != null) {
+            painelBomba1.setFrentista(idAcesso);
+            painelBomba2.setFrentista(idAcesso);
+            painelBomba3.setFrentista(idAcesso);
+        }
     }
 
     private <T extends JFrame> void abrirTelaCrud(Class<T> telaClass) {
@@ -108,5 +123,32 @@ public class TelaPrincipal extends JFrame {
         telaCadastro.pack();
         telaCadastro.setLocationRelativeTo(this);
         telaCadastro.setVisible(true);
+    }
+
+    private void carregarDadosIniciais() {
+        new SwingWorker<List<ProdutoResponse>, Void>() {
+
+            @Override
+            protected List<ProdutoResponse> doInBackground() throws Exception {
+                return produtoService.listarProdutos();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<ProdutoResponse> produtos = get();
+
+                    painelBomba1.carregarCombustiveis(produtos);
+                    painelBomba2.carregarCombustiveis(produtos);
+                    painelBomba3.carregarCombustiveis(produtos);
+
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(TelaPrincipal.this,
+                            "Erro grave ao carregar produtos do backend:\n" + e.getMessage(),
+                            "Erro de Carga", JOptionPane.ERROR_MESSAGE);
+                    e.printStackTrace();
+                }
+            }
+        }.execute();
     }
 }
