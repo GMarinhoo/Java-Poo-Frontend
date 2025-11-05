@@ -29,7 +29,6 @@ public class TelaEstoqueCrud extends JFrame {
     private final DefaultTableModel tableModel;
     private final JTable table;
 
-
     private final JTextField txtId = new JTextField();
     private final JTextField txtQuantidade = new JTextField();
     private final JTextField txtLocalTanque = new JTextField();
@@ -37,6 +36,8 @@ public class TelaEstoqueCrud extends JFrame {
     private final JTextField txtLoteFabricacao = new JTextField();
     private final JFormattedTextField txtDataValidade;
     private final JComboBox<TipoEstoque> comboTipo = new JComboBox<>(TipoEstoque.values());
+
+    private final JTextField txtIdProduto = new JTextField();
 
     private List<EstoqueResponse> listaDeEstoque = new ArrayList<>();
 
@@ -51,11 +52,11 @@ public class TelaEstoqueCrud extends JFrame {
         int padding = 15;
         ((JComponent) getContentPane()).setBorder(new EmptyBorder(padding, padding, padding, padding));
 
-        String[] columnNames = {"ID", "Qtd", "Local/Tanque", "Lote End.", "Lote Fab.", "Validade", "Tipo"};
+        String[] columnNames = {"ID Estoque", "ID Produto", "Qtd", "Local/Tanque", "Lote End.", "Lote Fab.", "Validade", "Tipo"};
         tableModel = new DefaultTableModel(columnNames, 0) { /* ... isCellEditable ... */ };
         table = new JTable(tableModel);
 
-        JPanel formPanel = new JPanel(new GridLayout(7, 2, 5, 5)); // 7 linhas
+        JPanel formPanel = new JPanel(new GridLayout(8, 2, 5, 5));
         txtId.setEditable(false);
 
         try {
@@ -65,8 +66,12 @@ public class TelaEstoqueCrud extends JFrame {
             throw new RuntimeException(e);
         }
 
-        formPanel.add(new JLabel("ID:"));
+        formPanel.add(new JLabel("ID Estoque:"));
         formPanel.add(txtId);
+
+        formPanel.add(new JLabel("ID Produto:"));
+        formPanel.add(txtIdProduto);
+
         formPanel.add(new JLabel("Quantidade:"));
         formPanel.add(txtQuantidade);
         formPanel.add(new JLabel("Local/Tanque:"));
@@ -113,14 +118,15 @@ public class TelaEstoqueCrud extends JFrame {
                     tableModel.setRowCount(0);
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                     if (listaDeEstoque != null) {
-                        for (EstoqueResponse e : listaDeEstoque) { // <-- MUDANÇA
+                        for (EstoqueResponse e : listaDeEstoque) {
                             tableModel.addRow(new Object[]{
                                     e.id(),
+                                    e.idProduto(),
                                     e.quantidade(),
                                     e.localTanque(),
                                     e.loteEndereco(),
                                     e.loteFabricacao(),
-                                    e.dataValidade() != null ? e.dataValidade().format(formatter) : "", // Formata LocalDate
+                                    e.dataValidade() != null ? e.dataValidade().format(formatter) : "",
                                     e.tipo()
                             });
                         }
@@ -133,18 +139,20 @@ public class TelaEstoqueCrud extends JFrame {
     }
 
     private void salvar() {
-        if (txtQuantidade.getText().isBlank() || txtLocalTanque.getText().isBlank()) {
-            JOptionPane.showMessageDialog(this, "Quantidade e Local/Tanque são obrigatórios.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
+        if (txtQuantidade.getText().isBlank() || txtIdProduto.getText().isBlank()) {
+            JOptionPane.showMessageDialog(this, "ID do Produto e Quantidade são obrigatórios.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         BigDecimal quantidade;
         LocalDate dataValidade;
+        Long idProduto;
         try {
+            idProduto = Long.parseLong(txtIdProduto.getText());
             quantidade = new BigDecimal(txtQuantidade.getText().replace(",", "."));
             dataValidade = LocalDate.parse(txtDataValidade.getText(), DateTimeFormatter.ofPattern("dd/MM/yyyy"));
         } catch (NumberFormatException nfe) {
-            JOptionPane.showMessageDialog(this, "Quantidade inválida. Use números.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "ID do Produto e Quantidade devem ser números.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
             return;
         } catch (Exception dataEx) {
             JOptionPane.showMessageDialog(this, "Formato de data inválido. Use dd/mm/aaaa.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
@@ -152,6 +160,7 @@ public class TelaEstoqueCrud extends JFrame {
         }
 
         EstoqueRequest request = new EstoqueRequest(
+                idProduto, // <-- O novo argumento
                 quantidade,
                 txtLocalTanque.getText(),
                 txtLoteEndereco.getText(),
@@ -189,7 +198,6 @@ public class TelaEstoqueCrud extends JFrame {
             JOptionPane.showMessageDialog(this, "Selecione um item do estoque para excluir.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
         int confirm = JOptionPane.showConfirmDialog(this, "Tem certeza?", "Confirmar Exclusão", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
             Long id = (Long) tableModel.getValueAt(table.getSelectedRow(), 0);
@@ -221,6 +229,7 @@ public class TelaEstoqueCrud extends JFrame {
         if (selectedRow >= 0 && selectedRow < listaDeEstoque.size()) {
             EstoqueResponse est = listaDeEstoque.get(selectedRow);
             txtId.setText(est.id().toString());
+            txtIdProduto.setText(est.idProduto().toString());
             txtQuantidade.setText(est.quantidade().toString());
             txtLocalTanque.setText(est.localTanque());
             txtLoteEndereco.setText(est.loteEndereco());
@@ -232,6 +241,7 @@ public class TelaEstoqueCrud extends JFrame {
 
     private void limparFormulario() {
         txtId.setText("");
+        txtIdProduto.setText("");
         txtQuantidade.setText("");
         txtLocalTanque.setText("");
         txtLoteEndereco.setText("");

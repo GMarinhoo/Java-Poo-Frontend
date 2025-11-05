@@ -4,9 +4,9 @@ import com.br.pdvpostocombustivel_frontend.model.enums.TipoEstoque;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-
 public record EstoqueResponse(
         Long id,
+        Long idProduto,
         BigDecimal quantidade,
         String localTanque,
         String loteEndereco,

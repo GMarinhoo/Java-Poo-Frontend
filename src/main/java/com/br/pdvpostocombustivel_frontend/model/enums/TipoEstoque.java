@@ -1,10 +1,10 @@
 package com.br.pdvpostocombustivel_frontend.model.enums;
 
 public enum TipoEstoque {
-    COMBUSTIVEL("Combustível"),
-    LUBRIFICANTE("Lubrificante"),
-    CONVENIENCIA("Conveniência"),
-    OUTROS("Outros");
+    OK("Em estoque"),
+    BAIXO("Estoque baixo"),
+    CRITICO("Estoque crítico"),
+    INDISPONIVEL("Indisponível");
 
     private final String descricao;
 

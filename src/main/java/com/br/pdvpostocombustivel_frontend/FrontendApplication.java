@@ -15,10 +15,6 @@ import javax.swing.UIManager;
 @SpringBootApplication
 public class FrontendApplication {
 
-    @Bean
-    public RestTemplate restTemplate() {
-        return new RestTemplate();
-    }
     public static void main(String[] args) {
         var context = new SpringApplicationBuilder(FrontendApplication.class)
                 .headless(false)

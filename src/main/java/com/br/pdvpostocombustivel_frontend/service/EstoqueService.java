@@ -27,9 +27,17 @@ public class EstoqueService {
             return restTemplate.postForObject(API_BASE_URL, estoqueRequest, EstoqueResponse.class);
         } else {
             restTemplate.put(API_BASE_URL + "/" + id, estoqueRequest);
-            return new EstoqueResponse(id, estoqueRequest.quantidade(), estoqueRequest.localTanque(),
-                    estoqueRequest.loteEndereco(), estoqueRequest.loteFabricacao(), estoqueRequest.dataValidade(),
-                    estoqueRequest.tipo());
+
+            return new EstoqueResponse(
+                    id,
+                    estoqueRequest.idProduto(),
+                    estoqueRequest.quantidade(),
+                    estoqueRequest.localTanque(),
+                    estoqueRequest.loteEndereco(),
+                    estoqueRequest.loteFabricacao(),
+                    estoqueRequest.dataValidade(),
+                    estoqueRequest.tipo()
+            );
         }
     }
 
