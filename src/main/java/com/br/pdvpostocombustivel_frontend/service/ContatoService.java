@@ -17,7 +17,6 @@ public class ContatoService {
         this.restTemplate = restTemplate;
     }
 
-    // --- MÉTODO CORRIGIDO ---
     public List<ContatoResponse> listarContatos() {
         ContatoResponse[] contatosArray = restTemplate.getForObject(API_BASE_URL, ContatoResponse[].class);
         return contatosArray != null ? Arrays.asList(contatosArray) : List.of();

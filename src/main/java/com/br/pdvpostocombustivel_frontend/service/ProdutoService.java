@@ -1,6 +1,7 @@
 package com.br.pdvpostocombustivel_frontend.service;
 
 
+import com.br.pdvpostocombustivel_frontend.model.ProdutoPageResponse;
 import com.br.pdvpostocombustivel_frontend.model.dto.ProdutoRequest;
 import com.br.pdvpostocombustivel_frontend.model.dto.ProdutoResponse;
 import org.springframework.stereotype.Service;
@@ -19,8 +20,8 @@ public class ProdutoService {
     }
 
     public List<ProdutoResponse> listarProdutos() {
-        ProdutoResponse[] produtoArray = restTemplate.getForObject(API_BASE_URL, ProdutoResponse[].class);
-        return produtoArray != null ? Arrays.asList(produtoArray) : List.of();
+        ProdutoPageResponse pageResponse = restTemplate.getForObject(API_BASE_URL, ProdutoPageResponse.class);
+        return pageResponse.getContent();
     }
 
     public ProdutoResponse salvarProduto(ProdutoRequest produtoRequest, Long id) {
@@ -30,7 +31,7 @@ public class ProdutoService {
             restTemplate.put(API_BASE_URL + "/" + id, produtoRequest);
             return new ProdutoResponse(id, produtoRequest.nome(), produtoRequest.referencia(),
                     produtoRequest.fornecedor(), produtoRequest.categoria(), produtoRequest.marca(),
-                    produtoRequest.tipo());
+                    produtoRequest.tipoProduto());
         }
     }
 

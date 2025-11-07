@@ -111,7 +111,7 @@ public class TelaProdutoCrud extends JFrame {
                                 p.fornecedor(),
                                 p.categoria(),
                                 p.marca(),
-                                p.tipo()
+                                p.tipoProduto()
                         });
                     }
                 } catch (Exception e) {
@@ -210,7 +210,7 @@ public class TelaProdutoCrud extends JFrame {
             txtFornecedor.setText(p.fornecedor());
             txtCategoria.setText(p.categoria());
             txtMarca.setText(p.marca());
-            comboTipo.setSelectedItem(p.tipo());
+            comboTipo.setSelectedItem(p.tipoProduto());
         }
     }
 

@@ -35,7 +35,6 @@ public class TelaPessoaCrud extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // --- MODELO DA TABELA ---
         String[] columnNames = {"ID", "Nome Completo", "CPF/CNPJ", "CTPS", "Data Nasc.", "Tipo"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
@@ -45,11 +44,9 @@ public class TelaPessoaCrud extends JFrame {
         };
         table = new JTable(tableModel);
 
-        // --- FORMULÁRIO ---
         JPanel formPanel = new JPanel(new GridLayout(7, 2, 5, 5));
         txtId.setEditable(false);
 
-        // Máscara para o campo de data
         try {
             MaskFormatter dateMask = new MaskFormatter("##/##/####");
             txtDataNascimento = new JFormattedTextField(dateMask);
@@ -70,7 +67,6 @@ public class TelaPessoaCrud extends JFrame {
         formPanel.add(new JLabel("Tipo de Pessoa:"));
         formPanel.add(comboTipoPessoa);
 
-        // --- BOTÕES ---
         JButton btnSalvar = new JButton("Salvar");
         JButton btnExcluir = new JButton("Excluir");
         JButton btnLimpar = new JButton("Limpar Formulário");
@@ -86,7 +82,6 @@ public class TelaPessoaCrud extends JFrame {
         getContentPane().add(topPanel, BorderLayout.NORTH);
         getContentPane().add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // --- AÇÕES ---
         btnSalvar.addActionListener(e -> salvar());
         btnExcluir.addActionListener(e -> excluir());
         btnLimpar.addActionListener(e -> limparFormulario());
@@ -106,7 +101,7 @@ public class TelaPessoaCrud extends JFrame {
             protected void done() {
                 try {
                     List<PessoaResponse> pessoas = get();
-                    tableModel.setRowCount(0); // Limpa a tabela
+                    tableModel.setRowCount(0);
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                     for (PessoaResponse p : pessoas) {
                         tableModel.addRow(new Object[]{
@@ -126,7 +121,6 @@ public class TelaPessoaCrud extends JFrame {
     }
 
     private void salvar() {
-        // Validações simples
         if (txtNome.getText().isBlank() || txtCpfCnpj.getText().isBlank()) {
             JOptionPane.showMessageDialog(this, "Nome e CPF/CNPJ são obrigatórios.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
             return;

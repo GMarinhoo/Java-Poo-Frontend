@@ -9,5 +9,5 @@ public record ProdutoResponse(
         String fornecedor,
         String categoria,
         String marca,
-        TipoProduto tipo
+        TipoProduto tipoProduto
 ) {}
