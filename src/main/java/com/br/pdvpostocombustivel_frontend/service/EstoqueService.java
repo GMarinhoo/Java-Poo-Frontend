@@ -1,5 +1,6 @@
 package com.br.pdvpostocombustivel_frontend.service;
 
+import com.br.pdvpostocombustivel_frontend.model.EstoquePageResponse;
 import com.br.pdvpostocombustivel_frontend.model.dto.EstoqueRequest;
 import com.br.pdvpostocombustivel_frontend.model.dto.EstoqueResponse;
 import org.springframework.stereotype.Service;
@@ -18,8 +19,8 @@ public class EstoqueService {
     }
 
     public List<EstoqueResponse> listarEstoques() {
-        EstoqueResponse[] estoqueArray = restTemplate.getForObject(API_BASE_URL, EstoqueResponse[].class);
-        return estoqueArray != null ? Arrays.asList(estoqueArray) : List.of();
+        EstoquePageResponse pageResponse = restTemplate.getForObject(API_BASE_URL, EstoquePageResponse.class);
+        return pageResponse.getContent();
     }
 
     public EstoqueResponse salvarEstoque(EstoqueRequest estoqueRequest, Long id) {
