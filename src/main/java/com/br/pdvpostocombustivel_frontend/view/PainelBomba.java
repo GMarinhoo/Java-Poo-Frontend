@@ -17,7 +17,9 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.awt.Dimension;
 
 @Component
 @Scope("prototype")
@@ -204,6 +206,11 @@ public class PainelBomba extends JPanel {
             JOptionPane.showMessageDialog(this, "Selecione um combustível válido.", "Erro de Venda", JOptionPane.WARNING_MESSAGE);
             return;
         }
+
+        if (txtLitros.getText().isBlank() && !txtValor.getText().isBlank()) {
+            calcularLitrosPorValor();
+        }
+
         BigDecimal quantidade;
         try {
             quantidade = new BigDecimal(txtLitros.getText().replace(",", "."));
@@ -291,38 +298,87 @@ public class PainelBomba extends JPanel {
         precoAtual = BigDecimal.ZERO;
     }
 
+    private String centerString(String text, int width) {
+        if (text == null) text = "";
+        if (text.length() >= width) return text;
+
+        int padding = (width - text.length()) / 2;
+        return " ".repeat(padding) + text + " ".repeat(width - text.length() - padding);
+    }
+
     private void mostrarCupomFiscal(VendaResponse venda) {
-        StringBuilder sb = new StringBuilder(512);
-        sb.append("========================================\n");
-        sb.append("         PDV POSTO DE COMBUSTÍVEL       \n");
-        sb.append("========================================\n");
-        sb.append("Data/Hora: ").append(venda.dataHora().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))).append("\n");
-        sb.append("Venda ID: ").append(venda.idVenda()).append("\n");
-        sb.append("Frentista: ").append(venda.nomeFrentista()).append("\n");
-        sb.append("Forma Pgto: ").append(venda.formaPagamento()).append("\n");
-        sb.append("----------------------------------------\n");
-        sb.append("PRODUTO | QTD (L) | VL. UNIT. | TOTAL\n");
-        sb.append("----------------------------------------\n");
+
+        final int LARGURA = 45;
+        String separadorLinha = "-".repeat(LARGURA) + "\n";
+        String separadorDuplo = "=".repeat(LARGURA) + "\n";
+
+        StringBuilder sb = new StringBuilder(1024);
+        sb.append(separadorDuplo);
+        sb.append(centerString("PDV Posto Combustível Ltda.", LARGURA)).append("\n");
+        sb.append(centerString("CNPJ: 33.000.167/0001-01 | IE: 123.456.789-0", LARGURA)).append("\n");
+        sb.append(centerString("Av. Acadêmica, 123 - Bairro Universitário", LARGURA)).append("\n");
+        sb.append(separadorDuplo);
+        sb.append(centerString("COMPROVANTE DE VENDA", LARGURA)).append("\n");
+        sb.append(separadorDuplo);
+
+        DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+
+        sb.append(String.format("Data/Hora: %" + (LARGURA - 11) + "s\n", venda.dataHora().format(formatter)));
+        sb.append(String.format("Venda ID: %" + (LARGURA - 10) + "d\n", venda.idVenda()));
+        sb.append(String.format("Frentista: %" + (LARGURA - 11) + "s\n", venda.nomeFrentista()));
+        sb.append(String.format("CPF/CNPJ: %" + (LARGURA - 10) + "s\n", "(Opcional)"));
+        sb.append(String.format("Forma Pgto: %" + (LARGURA - 12) + "s\n", venda.formaPagamento()));
+        sb.append(separadorLinha);
+
+        sb.append("PRODUTO\n");
+        sb.append(separadorLinha);
 
         for (VendaItemResponse item : venda.itens()) {
-            sb.append(String.format("%-15.15s\n", item.nomeProduto()));
-            sb.append(String.format("          %.3f L x R$ %.2f   R$ %.2f\n",
+            String nomeProduto = item.nomeProduto();
+            sb.append(nomeProduto).append("\n");
+
+            String linhaPreco = String.format("       %,.3f L x R$ %,.2f",
                     item.quantidade(),
-                    item.precoUnitario(),
-                    item.precoTotal()
-            ));
+                    item.precoUnitario()
+            );
+
+            String linhaTotalItem = String.format("R$ %,.2f", item.precoTotal());
+
+            sb.append(linhaPreco);
+            sb.append(" ".repeat(Math.max(0, LARGURA - linhaPreco.length() - linhaTotalItem.length())));
+            sb.append(linhaTotalItem).append("\n");
         }
+        sb.append(separadorLinha);
 
-        sb.append("========================================\n");
-        sb.append(String.format("VALOR TOTAL:                   R$ %.2f\n", venda.valorTotal()));
-        sb.append("========================================\n");
+        String textoTotal = "VALOR TOTAL:";
+        String valorTotal = String.format("R$ %,.2f", venda.valorTotal());
+        sb.append(textoTotal);
+        sb.append(" ".repeat(Math.max(0, LARGURA - textoTotal.length() - valorTotal.length())));
+        sb.append(valorTotal).append("\n");
+        sb.append(separadorLinha);
 
-        JTextArea textArea = new JTextArea(sb.toString(), 25, 45);
+        BigDecimal percentualTributo = new BigDecimal("0.33");
+        BigDecimal valorTributo = venda.valorTotal().multiply(percentualTributo).setScale(2, RoundingMode.HALF_UP);
+
+        String linhaTributo = String.format("Valor aprox. de tributos: R$ %,.2f (%.2f%%)",
+                valorTributo,
+                percentualTributo.multiply(BigDecimal.valueOf(100))
+        );
+        sb.append(linhaTributo).append("\n\n");
+
+        sb.append(centerString("Obrigado pela preferência!", LARGURA)).append("\n");
+        sb.append(centerString("*Comprovante de Projeto - Sem Valor Fiscal*", LARGURA)).append("\n");
+        sb.append(separadorDuplo);
+
+        JTextArea textArea = new JTextArea(sb.toString());
         textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
         textArea.setEditable(false);
 
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setPreferredSize(new Dimension(380, 450));
+
         JOptionPane.showMessageDialog(this,
-                new JScrollPane(textArea),
+                scrollPane,
                 "Cupom Fiscal - Venda ID: " + venda.idVenda(),
                 JOptionPane.PLAIN_MESSAGE);
     }

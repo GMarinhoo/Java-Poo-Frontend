@@ -35,7 +35,7 @@ public class TelaContatoCrud extends JFrame {
 
         setTitle("Cadastro de Contatos");
         setSize(800, 600);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
         int padding = 15;

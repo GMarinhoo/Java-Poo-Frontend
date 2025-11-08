@@ -36,7 +36,7 @@ public class TelaProdutoCrud extends JFrame {
 
         setTitle("Cadastro de Produtos");
         setSize(1000, 700);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
         int padding = 15;

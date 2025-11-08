@@ -1,50 +1,56 @@
 package com.br.pdvpostocombustivel_frontend.view;
 
-import com.br.pdvpostocombustivel_frontend.model.dto.PessoaRequest;
-import com.br.pdvpostocombustivel_frontend.model.dto.PessoaResponse;
-import com.br.pdvpostocombustivel_frontend.model.enums.TipoPessoa;
-import com.br.pdvpostocombustivel_frontend.service.PessoaService;
+import com.br.pdvpostocombustivel_frontend.model.dto.CustoRequest;
+import com.br.pdvpostocombustivel_frontend.model.dto.CustoResponse;
+import com.br.pdvpostocombustivel_frontend.service.CustoService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
+
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.MaskFormatter;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Component
-public class TelaPessoaCrud extends JFrame {
+public class TelaCustoCrud extends JFrame {
 
-    private final PessoaService pessoaService;
+    private final CustoService custoService;
     private final DefaultTableModel tableModel;
     private final JTable table;
     private final JTextField txtId = new JTextField();
-    private final JTextField txtNome = new JTextField();
-    private final JTextField txtCpfCnpj = new JTextField();
-    private final JTextField txtCtps = new JTextField();
-    private final JFormattedTextField txtDataNascimento;
-    private final JComboBox<TipoPessoa> comboTipoPessoa = new JComboBox<>(TipoPessoa.values());
+    private final JTextField txtImposto = new JTextField();
+    private final JTextField txtCustoVariavel = new JTextField();
+    private final JTextField txtCustoFixo = new JTextField();
+    private final JTextField txtMargemLucro = new JTextField();
+    private final JFormattedTextField txtDataProcessamento;
 
-    private List<PessoaResponse> listaDePessoas = new ArrayList<>();
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 
-    public TelaPessoaCrud(PessoaService pessoaService) {
-        this.pessoaService = pessoaService;
+    private List<CustoResponse> listaDeCustos = new ArrayList<>();
 
-        setTitle("Cadastro de Pessoas");
+    public TelaCustoCrud(CustoService custoService) {
+        this.custoService = custoService;
+
+        setTitle("Cadastro de Custos (Histórico)");
         setSize(1000, 700);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Correto
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        String[] columnNames = {"ID", "Nome Completo", "CPF/CNPJ", "CTPS", "Data Nasc.", "Tipo"};
+        int padding = 15;
+        ((JComponent) getContentPane()).setBorder(new EmptyBorder(padding, padding, padding, padding));
+
+        String[] columnNames = {"ID", "Imposto (%)", "Custo Var.", "Custo Fixo", "Margem Lucro (%)", "Data Process."};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -53,28 +59,28 @@ public class TelaPessoaCrud extends JFrame {
         };
         table = new JTable(tableModel);
 
-        JPanel formPanel = new JPanel(new GridLayout(7, 2, 5, 5));
+        JPanel formPanel = new JPanel(new GridLayout(6, 2, 5, 5));
         txtId.setEditable(false);
 
         try {
             MaskFormatter dateMask = new MaskFormatter("##/##/####");
-            txtDataNascimento = new JFormattedTextField(dateMask);
+            txtDataProcessamento = new JFormattedTextField(dateMask);
         } catch (ParseException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Erro ao criar máscara de data", e);
         }
 
-        formPanel.add(new JLabel("ID:"));
+        formPanel.add(new JLabel("ID (automático):"));
         formPanel.add(txtId);
-        formPanel.add(new JLabel("Nome Completo:"));
-        formPanel.add(txtNome);
-        formPanel.add(new JLabel("CPF/CNPJ:"));
-        formPanel.add(txtCpfCnpj);
-        formPanel.add(new JLabel("Nº CTPS:"));
-        formPanel.add(txtCtps);
-        formPanel.add(new JLabel("Data Nascimento (dd/mm/aaaa):"));
-        formPanel.add(txtDataNascimento);
-        formPanel.add(new JLabel("Tipo de Pessoa:"));
-        formPanel.add(comboTipoPessoa);
+        formPanel.add(new JLabel("Imposto (Ex: 0.1 = 10%):"));
+        formPanel.add(txtImposto);
+        formPanel.add(new JLabel("Custo Variável:"));
+        formPanel.add(txtCustoVariavel);
+        formPanel.add(new JLabel("Custo Fixo:"));
+        formPanel.add(txtCustoFixo);
+        formPanel.add(new JLabel("Margem Lucro (Ex: 0.2 = 20%):"));
+        formPanel.add(txtMargemLucro);
+        formPanel.add(new JLabel("Data Processamento (dd/mm/aaaa):"));
+        formPanel.add(txtDataProcessamento);
 
         JButton btnSalvar = new JButton("Salvar");
         JButton btnExcluir = new JButton("Excluir");
@@ -107,67 +113,62 @@ public class TelaPessoaCrud extends JFrame {
     }
 
     private void atualizarTabela() {
-        new SwingWorker<List<PessoaResponse>, Void>() {
+        new SwingWorker<List<CustoResponse>, Void>() {
             @Override
-            protected List<PessoaResponse> doInBackground() throws Exception {
-                return pessoaService.listarPessoas();
+            protected List<CustoResponse> doInBackground() throws Exception {
+                return custoService.listarCustos();
             }
 
             @Override
             protected void done() {
                 try {
-                    listaDePessoas = get();
+                    listaDeCustos = get();
                     tableModel.setRowCount(0);
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                    if (listaDePessoas != null) {
-                        for (PessoaResponse p : listaDePessoas) {
+
+                    if (listaDeCustos != null) {
+                        for (CustoResponse c : listaDeCustos) {
                             tableModel.addRow(new Object[]{
-                                    p.id(),
-                                    p.nomeCompleto(),
-                                    p.cpfCnpj(),
-                                    p.numeroCtps(),
-                                    p.dataNascimento() != null ? p.dataNascimento().format(formatter) : "",
-                                    p.tipoPessoa()
+                                    c.id(),
+                                    c.imposto(),
+                                    c.custoVariavel(),
+                                    c.custoFixo(),
+                                    c.margemLucro(),
+                                    dateFormat.format(c.dataProcessamento())
                             });
                         }
                     }
                 } catch (Exception e) {
-                    JOptionPane.showMessageDialog(TelaPessoaCrud.this, "Erro ao buscar pessoas: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(TelaCustoCrud.this, "Erro ao buscar custos: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
                 }
             }
         }.execute();
     }
 
     private void salvar() {
-        if (txtNome.getText().isBlank() || txtCpfCnpj.getText().isBlank()) {
-            JOptionPane.showMessageDialog(this, "Nome e CPF/CNPJ são obrigatórios.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        LocalDate dataNascimento = null;
-        Long ctps = null;
-
+        Double imposto, custoVar, custoFixo, margem;
+        Date dataProc;
         try {
-            if (!txtDataNascimento.getText().equals("  /  /    ")) {
-                dataNascimento = LocalDate.parse(txtDataNascimento.getText(), formatter);
-            }
+            imposto = Double.parseDouble(txtImposto.getText().replace(",", "."));
+            custoVar = Double.parseDouble(txtCustoVariavel.getText().replace(",", "."));
+            custoFixo = Double.parseDouble(txtCustoFixo.getText().replace(",", "."));
+            margem = Double.parseDouble(txtMargemLucro.getText().replace(",", "."));
 
-            if (!txtCtps.getText().isBlank()) {
-                ctps = Long.parseLong(txtCtps.getText());
-            }
+            dataProc = dateFormat.parse(txtDataProcessamento.getText());
 
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Formato de data ou CTPS inválido.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Campos de valor (Imposto, Custos, Margem) devem ser números válidos.", "Erro de Formato", JOptionPane.ERROR_MESSAGE);
+            return;
+        } catch (ParseException e) {
+            JOptionPane.showMessageDialog(this, "Data inválida. Use o formato dd/mm/aaaa.", "Erro de Formato", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        PessoaRequest request = new PessoaRequest(
-                txtNome.getText(),
-                txtCpfCnpj.getText(),
-                ctps,
-                dataNascimento,
-                (TipoPessoa) comboTipoPessoa.getSelectedItem()
+        CustoRequest request = new CustoRequest(
+                imposto,
+                custoVar,
+                custoFixo,
+                margem,
+                dataProc
         );
 
         Long id = txtId.getText().isEmpty() ? null : Long.valueOf(txtId.getText());
@@ -175,7 +176,7 @@ public class TelaPessoaCrud extends JFrame {
         new SwingWorker<Void, Void>() {
             @Override
             protected Void doInBackground() throws Exception {
-                pessoaService.salvarPessoa(request, id);
+                custoService.salvarCusto(request, id);
                 return null;
             }
 
@@ -183,11 +184,11 @@ public class TelaPessoaCrud extends JFrame {
             protected void done() {
                 try {
                     get();
-                    JOptionPane.showMessageDialog(TelaPessoaCrud.this, "Pessoa salva com sucesso!");
+                    JOptionPane.showMessageDialog(TelaCustoCrud.this, "Custo salvo com sucesso!");
                     limparFormulario();
                     atualizarTabela();
                 } catch (Exception e) {
-                    lidarComErroDeApi(e, "Erro ao salvar pessoa");
+                    lidarComErroDeApi(e, "Erro ao salvar custo");
                 }
             }
         }.execute();
@@ -195,30 +196,31 @@ public class TelaPessoaCrud extends JFrame {
 
     private void excluir() {
         if (table.getSelectedRow() < 0) {
-            JOptionPane.showMessageDialog(this, "Selecione uma pessoa para excluir.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Selecione um registro de custo para excluir.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         int confirm = JOptionPane.showConfirmDialog(this, "Tem certeza?", "Confirmar Exclusão", JOptionPane.YES_NO_OPTION);
+
         if (confirm == JOptionPane.YES_OPTION) {
-            Long id = listaDePessoas.get(table.getSelectedRow()).id();
+            Long id = listaDeCustos.get(table.getSelectedRow()).id();
 
             new SwingWorker<Void, Void>() {
                 @Override
                 protected Void doInBackground() throws Exception {
-                    pessoaService.excluirPessoa(id);
+                    custoService.excluirCusto(id);
                     return null;
                 }
 
                 @Override
                 protected void done() {
                     try {
-                        get(); // Pega o resultado. Se der erro, vai para o CATCH
-                        JOptionPane.showMessageDialog(TelaPessoaCrud.this, "Pessoa excluída com sucesso!");
+                        get();
+                        JOptionPane.showMessageDialog(TelaCustoCrud.this, "Registro de custo excluído com sucesso!");
                         limparFormulario();
                         atualizarTabela();
                     } catch (Exception e) {
-                        lidarComErroDeApi(e, "Erro ao excluir pessoa");
+                        lidarComErroDeApi(e, "Erro ao excluir custo");
                     }
                 }
             }.execute();
@@ -227,25 +229,25 @@ public class TelaPessoaCrud extends JFrame {
 
     private void preencherFormularioComLinhaSelecionada() {
         int selectedRow = table.getSelectedRow();
-        if (selectedRow >= 0 && selectedRow < listaDePessoas.size()) {
-            PessoaResponse p = listaDePessoas.get(selectedRow); // Usa a lista local
+        if (selectedRow >= 0 && selectedRow < listaDeCustos.size()) {
+            CustoResponse c = listaDeCustos.get(selectedRow);
 
-            txtId.setText(p.id().toString());
-            txtNome.setText(p.nomeCompleto());
-            txtCpfCnpj.setText(p.cpfCnpj());
-            txtCtps.setText(p.numeroCtps() != null ? p.numeroCtps().toString() : "");
-            txtDataNascimento.setText(p.dataNascimento() != null ? p.dataNascimento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "");
-            comboTipoPessoa.setSelectedItem(p.tipoPessoa());
+            txtId.setText(c.id().toString());
+            txtImposto.setText(c.imposto().toString());
+            txtCustoVariavel.setText(c.custoVariavel().toString());
+            txtCustoFixo.setText(c.custoFixo().toString());
+            txtMargemLucro.setText(c.margemLucro().toString());
+            txtDataProcessamento.setText(dateFormat.format(c.dataProcessamento()));
         }
     }
 
     private void limparFormulario() {
         txtId.setText("");
-        txtNome.setText("");
-        txtCpfCnpj.setText("");
-        txtCtps.setText("");
-        txtDataNascimento.setText("");
-        comboTipoPessoa.setSelectedIndex(0);
+        txtImposto.setText("");
+        txtCustoVariavel.setText("");
+        txtCustoFixo.setText("");
+        txtMargemLucro.setText("");
+        txtDataProcessamento.setText("");
         table.clearSelection();
     }
 
@@ -270,7 +272,6 @@ public class TelaPessoaCrud extends JFrame {
             e.printStackTrace();
             errorMessage = e.getMessage();
         }
-
         JOptionPane.showMessageDialog(this, errorMessage, titulo, JOptionPane.ERROR_MESSAGE);
     }
 }

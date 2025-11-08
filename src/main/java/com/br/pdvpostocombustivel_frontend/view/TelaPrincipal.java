@@ -1,5 +1,7 @@
 package com.br.pdvpostocombustivel_frontend.view;
 
+import com.br.pdvpostocombustivel_frontend.service.CustoService;
+import com.br.pdvpostocombustivel_frontend.service.PrecoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -11,6 +13,8 @@ import com.br.pdvpostocombustivel_frontend.model.dto.ProdutoResponse;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 @Component
 public class TelaPrincipal extends JFrame {
@@ -39,22 +43,28 @@ public class TelaPrincipal extends JFrame {
         ((JComponent) getContentPane()).setBorder(new EmptyBorder(padding, padding, padding, padding));
 
         JMenuBar menuBar = new JMenuBar();
-        JMenu menuCadastros = new JMenu("Cadastros");
+        JMenu menuCadastros = new JMenu("Sistema");
         JMenuItem itemPessoas = new JMenuItem("Pessoas");
         JMenuItem itemProdutos = new JMenuItem("Produtos");
         JMenuItem itemContatos = new JMenuItem("Contatos");
         JMenuItem itemEstoque = new JMenuItem("Estoque");
         JMenuItem itemUsuario = new JMenuItem("Cadastrar Novo Usuário");
+        JMenuItem itemAcessos = new JMenuItem("Gerenciar Acessos");
+        JMenuItem itemPrecos = new JMenuItem("Definir Preços");
+        JMenuItem itemCustos = new JMenuItem("Custos");
 
         menuCadastros.add(itemUsuario);
+        menuCadastros.add(itemAcessos);
         menuCadastros.addSeparator();
         menuCadastros.add(itemPessoas);
         menuCadastros.add(itemProdutos);
+        menuCadastros.add(itemPrecos);
+        menuCadastros.add(itemCustos);
         menuCadastros.add(itemContatos);
         menuCadastros.add(itemEstoque);
         menuBar.add(menuCadastros);
 
-        JMenu menuSistema = new JMenu("Sistema");
+        JMenu menuSistema = new JMenu("Sair");
         JMenuItem itemLogout = new JMenuItem("Logout");
         menuSistema.add(itemLogout);
         menuBar.add(menuSistema);
@@ -77,11 +87,21 @@ public class TelaPrincipal extends JFrame {
         itemProdutos.addActionListener(e -> abrirTelaCrud(TelaProdutoCrud.class));
         itemContatos.addActionListener(e -> abrirTelaCrud(TelaContatoCrud.class));
         itemEstoque.addActionListener(e -> abrirTelaCrud(TelaEstoqueCrud.class));
+        itemPrecos.addActionListener(e -> abrirTelaCrud(TelaPrecoCrud.class));
+        itemCustos.addActionListener(e -> abrirTelaCrud(TelaCustoCrud.class));
         itemUsuario.addActionListener(e -> abrirTelaCadastroUsuario());
+        itemAcessos.addActionListener(e -> abrirTelaCrud(TelaAcessoCrud.class));
         itemLogout.addActionListener(e -> fazerLogout());
 
-        carregarDadosIniciais();
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowActivated(WindowEvent e) {
+                System.out.println("Janela Principal ativada, recarregando produtos...");
+                carregarDadosIniciais();
+            }
+        });
 
+        carregarDadosIniciais();
     }
 
     public void setUsuarioLogado(Long idAcesso, String nomePessoa) {
@@ -98,7 +118,18 @@ public class TelaPrincipal extends JFrame {
 
     private <T extends JFrame> void abrirTelaCrud(Class<T> telaClass) {
         try {
-            T tela = context.getBean(telaClass);
+            T tela;
+
+            if (telaClass.equals(TelaPrecoCrud.class)) {
+                PrecoService precoService = context.getBean(PrecoService.class);
+                CustoService custoService = context.getBean(CustoService.class);
+
+                tela = (T) new TelaPrecoCrud(precoService, custoService);
+
+            } else {
+                tela = context.getBean(telaClass);
+            }
+
             tela.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             tela.setLocationRelativeTo(this);
             tela.setVisible(true);

@@ -15,6 +15,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.MaskFormatter;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.time.LocalDate;
@@ -46,7 +48,7 @@ public class TelaEstoqueCrud extends JFrame {
 
         setTitle("Cadastro de Estoque");
         setSize(1000, 700);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
         int padding = 15;
@@ -101,6 +103,14 @@ public class TelaEstoqueCrud extends JFrame {
         btnExcluir.addActionListener(e -> excluir());
         btnLimpar.addActionListener(e -> limparFormulario());
         table.getSelectionModel().addListSelectionListener(e -> preencherFormularioComLinhaSelecionada());
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowActivated(WindowEvent e) {
+                System.out.println("Janela de Estoque ativada, atualizando tabela...");
+                atualizarTabela();
+            }
+        });
 
         atualizarTabela();
     }
